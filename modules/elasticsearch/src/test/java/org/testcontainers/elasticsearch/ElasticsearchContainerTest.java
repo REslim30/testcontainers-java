@@ -409,20 +409,20 @@ public class ElasticsearchContainerTest {
     }
 
     @Test
-    public void testElasticsearchDefaultMaxHeapSizeIsNotOverriddenOnUnrelatedEsJavaOpt() throws Exception {
-        long defaultHeapSize = 2147483648L;
+    public void testElasticsearchCustomMaxHeapSizeUsingJvmOptionsFile() throws Exception {
+        long customHeapSize = 1574961152;
 
         try (
             ElasticsearchContainer container = new ElasticsearchContainer(ELASTICSEARCH_IMAGE)
-                .withEnv("ES_JAVA_OPTS", "-Xdiag")
+	    	.withCommand(String.format("sh -c printf '-Xms%d\\n-Xmx%d' > /usr/share/elasticsearch/config/jvm.options.d/a-user-defined-jvm.options", customHeapSize, customHeapSize));
         ) {
             container.start();
 
             Response response = getClient(container).performRequest(new Request("GET", "/_nodes/_all/jvm"));
             String responseBody = EntityUtils.toString(response.getEntity());
             assertThat(response.getStatusLine().getStatusCode()).isEqualTo(200);
-            assertThat(responseBody).contains("\"heap_init_in_bytes\":" + defaultHeapSize);
-            assertThat(responseBody).contains("\"heap_max_in_bytes\":" + defaultHeapSize);
+            assertThat(responseBody).contains("\"heap_init_in_bytes\":" + customHeapSize);
+            assertThat(responseBody).contains("\"heap_max_in_bytes\":" + customHeapSize);
         }
     }
 
