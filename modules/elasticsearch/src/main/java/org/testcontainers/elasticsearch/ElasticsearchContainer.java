@@ -232,7 +232,8 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
     }
 
     /**
-     * Configure max heap size, using ES_JAVA_OPTS environment variable. If -Xms and -Xmx options are already present in ES_JAVA_OPTS, method will do nothing.
+     * Configure max heap size, using ES_JAVA_OPTS environment variable and setting the -Xms and -Xmx JVM options.
+     * If these options are already present in ES_JAVA_OPTS, then they will be replaced with maxHealSizeInBytes.
      *
      * @param maxHeapSizeInBytes Maximum and start heap size in bytes
      * @return this
