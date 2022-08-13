@@ -75,6 +75,8 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
 
     private String certPath = "/usr/share/elasticsearch/config/certs/http_ca.crt";
 
+    private Optional<Long> maxHeapSizeInBytes = Optional.empty();
+
     /**
      * @deprecated use {@link ElasticsearchContainer(DockerImageName)} instead
      */
@@ -103,7 +105,6 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
         logger().info("Starting an elasticsearch container using [{}]", dockerImageName);
         withNetworkAliases("elasticsearch-" + Base58.randomString(6));
         withEnv("discovery.type", "single-node");
-        withMaxHeapSizeInBytes(DEFAULT_MAX_HEAP_SIZE_IN_BYTES);
         addExposedPorts(ELASTICSEARCH_DEFAULT_PORT, ELASTICSEARCH_DEFAULT_TCP_PORT);
         this.isAtLeastMajorVersion8 =
             new ComparableVersion(dockerImageName.getVersionPart()).isGreaterThanOrEqualTo("8.0.0");
@@ -116,6 +117,29 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
         setWaitStrategy(new LogMessageWaitStrategy().withRegEx(regex));
         if (isAtLeastMajorVersion8) {
             withPassword(ELASTICSEARCH_DEFAULT_PASSWORD);
+        }
+    }
+
+    @Override
+    protected void configure() {
+        if (maxHeapSizeInBytes.isPresent()) {
+            String options = String.format("-Xms%d -Xmx%d", maxHeapSizeInBytes.get(), maxHeapSizeInBytes.get());
+            withEnv("ES_JAVA_OPTS", previousEsJavaOpts -> {
+                if (previousEsJavaOpts.isEmpty()) {
+                    return options;
+                } else {
+                    return previousEsJavaOpts.get();
+                }
+            });
+        } else {
+            String options = String.format("-Xms%d -Xmx%d", DEFAULT_MAX_HEAP_SIZE_IN_BYTES, DEFAULT_MAX_HEAP_SIZE_IN_BYTES);
+            withEnv("ES_JAVA_OPTS", previousEsJavaOpts -> {
+                if (previousEsJavaOpts.isEmpty()) {
+                    return options;
+                } else {
+                    return previousEsJavaOpts.get();
+                }
+            });
         }
     }
 
@@ -214,14 +238,7 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
      * @return this
      */
     public ElasticsearchContainer withMaxHeapSizeInBytes(long maxHeapSizeInBytes) {
-        String options = String.format("-Xms%d -Xmx%d", maxHeapSizeInBytes, maxHeapSizeInBytes);
-        withEnv("ES_JAVA_OPTS", previousEsJavaOpts -> {
-            if (previousEsJavaOpts.isEmpty()) {
-                return options;
-            } else {
-                return previousEsJavaOpts.get();
-            }
-        });
+        this.maxHeapSizeInBytes = Optional.of(Long.valueOf(maxHeapSizeInBytes));
         return this;
     }
 }

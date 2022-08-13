@@ -415,7 +415,7 @@ public class ElasticsearchContainerTest {
 
         try (
             ElasticsearchContainer container = new ElasticsearchContainer(ELASTICSEARCH_IMAGE)
-                .withEnv("ES_JAVA_OPTS", String.format("-Xms%d -Xmx%d", previousHeapSizeValue, customHeapSize))
+                .withEnv("ES_JAVA_OPTS", String.format("-Xms%d -Xmx%d", previousHeapSizeValue, previousHeapSizeValue))
                 .withMaxHeapSizeInBytes(customHeapSize)
         ) {
             container.start();
