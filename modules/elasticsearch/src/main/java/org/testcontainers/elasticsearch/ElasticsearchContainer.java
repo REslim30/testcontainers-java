@@ -10,6 +10,7 @@ import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.utility.Base58;
 import org.testcontainers.utility.ComparableVersion;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.containers.BindMode;
 
 import java.io.ByteArrayInputStream;
 import java.net.InetSocketAddress;
@@ -66,11 +67,6 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
     @Deprecated
     protected static final String DEFAULT_TAG = "7.9.2";
 
-    /**
-     * Elasticsearch Default max heap size
-     */
-    private static final long DEFAULT_MAX_HEAP_SIZE_IN_BYTES = 2147483648L;
-
     private final boolean isOss;
 
     private final boolean isAtLeastMajorVersion8;
@@ -107,6 +103,7 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
         logger().info("Starting an elasticsearch container using [{}]", dockerImageName);
         withNetworkAliases("elasticsearch-" + Base58.randomString(6));
         withEnv("discovery.type", "single-node");
+	withClasspathResourceMapping("elasticsearch-default-vm-options.options", "/usr/share/elasticsearch/config/jvm.options.d/aaaaaaaaa.options", BindMode.READ_ONLY);
         addExposedPorts(ELASTICSEARCH_DEFAULT_PORT, ELASTICSEARCH_DEFAULT_TCP_PORT);
         this.isAtLeastMajorVersion8 =
             new ComparableVersion(dockerImageName.getVersionPart()).isGreaterThanOrEqualTo("8.0.0");
@@ -120,11 +117,6 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
         if (isAtLeastMajorVersion8) {
             withPassword(ELASTICSEARCH_DEFAULT_PASSWORD);
         }
-    }
-
-    @Override
-    protected void configure() {
-        configureDefaultHeapSize();
     }
 
     @Override
@@ -214,23 +206,5 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
     public InetSocketAddress getTcpHost() {
         return new InetSocketAddress(getHost(), getMappedPort(ELASTICSEARCH_DEFAULT_TCP_PORT));
     }
-
-    private void configureDefaultHeapSize() {
-        String options = String.format("-Xms%d -Xmx%d", DEFAULT_MAX_HEAP_SIZE_IN_BYTES, DEFAULT_MAX_HEAP_SIZE_IN_BYTES);
-        Function<Optional<String>, String> replacePreviousEsJavaOpts = previousEsJavaOpts -> {
-            if (previousEsJavaOpts.isEmpty()) {
-                return options;
-            } else {
-                List<String> previousOptions = Arrays.asList(previousEsJavaOpts.get().split("\\s+"));
-                boolean initialHeapSizeSet = previousOptions.stream() .anyMatch(option -> option.startsWith("-Xms"));
-                boolean maxHeapSizeSet = previousOptions.stream().anyMatch(option -> option.startsWith("-Xmx"));
-                if (initialHeapSizeSet && maxHeapSizeSet) {
-                    return previousEsJavaOpts.get();
-                }
-                return options + " " + previousEsJavaOpts.get();
-            }
-        };
-        withEnv("ES_JAVA_OPTS", replacePreviousEsJavaOpts);
-        withEnv("CLI_JAVA_OPTS", replacePreviousEsJavaOpts); // New environment variable for Elasticsearch 8+
-    }
+    
 }
