@@ -17,6 +17,7 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Arrays;
 import java.util.List;
@@ -216,22 +217,20 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
 
     private void configureDefaultHeapSize() {
         String options = String.format("-Xms%d -Xmx%d", DEFAULT_MAX_HEAP_SIZE_IN_BYTES, DEFAULT_MAX_HEAP_SIZE_IN_BYTES);
-        withEnv("ES_JAVA_OPTS", previousEsJavaOpts -> {
+        Function<Optional<String>, String> replacePreviousEsJavaOpts = previousEsJavaOpts -> {
             if (previousEsJavaOpts.isEmpty()) {
                 return options;
             } else {
                 List<String> previousOptions = Arrays.asList(previousEsJavaOpts.get().split("\\s+"));
-                boolean initialHeapSizeSet = previousOptions
-                    .stream()
-                    .anyMatch(option -> option.startsWith("-Xms"));
-                boolean maxHeapSizeSet = previousOptions
-                    .stream()
-                    .anyMatch(option -> option.startsWith("-Xmx"));
+                boolean initialHeapSizeSet = previousOptions.stream() .anyMatch(option -> option.startsWith("-Xms"));
+                boolean maxHeapSizeSet = previousOptions.stream().anyMatch(option -> option.startsWith("-Xmx"));
                 if (initialHeapSizeSet && maxHeapSizeSet) {
                     return previousEsJavaOpts.get();
                 }
                 return options + " " + previousEsJavaOpts.get();
             }
-        });
+        };
+        withEnv("ES_JAVA_OPTS", replacePreviousEsJavaOpts);
+        withEnv("CLI_JAVA_OPTS", replacePreviousEsJavaOpts); // New environment variable for Elasticsearch 8+
     }
 }
