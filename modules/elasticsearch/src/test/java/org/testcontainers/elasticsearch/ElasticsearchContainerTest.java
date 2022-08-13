@@ -408,6 +408,24 @@ public class ElasticsearchContainerTest {
         }
     }
 
+    @Test
+    public void testElasticsearchDefaultMaxHeapSizeIsNotOverriddenOnUnrelatedEsJavaOpt() throws Exception {
+        long defaultHeapSize = 2147483648L;
+
+        try (
+            ElasticsearchContainer container = new ElasticsearchContainer(ELASTICSEARCH_IMAGE)
+                .withEnv("ES_JAVA_OPTS", "-Xdiag")
+        ) {
+            container.start();
+
+            Response response = getClient(container).performRequest(new Request("GET", "/_nodes/_all/jvm"));
+            String responseBody = EntityUtils.toString(response.getEntity());
+            assertThat(response.getStatusLine().getStatusCode()).isEqualTo(200);
+            assertThat(responseBody).contains("\"heap_init_in_bytes\":" + defaultHeapSize);
+            assertThat(responseBody).contains("\"heap_max_in_bytes\":" + defaultHeapSize);
+        }
+    }
+
     private void tagImage(String sourceImage, String targetImage, String targetTag) throws InterruptedException {
         DockerClient dockerClient = DockerClientFactory.instance().client();
         dockerClient
