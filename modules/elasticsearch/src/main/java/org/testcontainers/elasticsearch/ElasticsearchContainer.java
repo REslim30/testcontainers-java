@@ -215,7 +215,13 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
      */
     public ElasticsearchContainer withMaxHeapSizeInBytes(long maxHeapSizeInBytes) {
         String options = String.format("-Xms%d -Xmx%d", maxHeapSizeInBytes, maxHeapSizeInBytes);
-        withEnv("ES_JAVA_OPTS", options);
+        withEnv("ES_JAVA_OPTS", previousEsJavaOpts -> {
+            if (previousEsJavaOpts.isEmpty()) {
+                return options;
+            } else {
+                return previousEsJavaOpts.get();
+            }
+        });
         return this;
     }
 }

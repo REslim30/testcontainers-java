@@ -408,6 +408,26 @@ public class ElasticsearchContainerTest {
         }
     }
 
+    @Test
+    public void testElasticsearchCustomMaxHeapSizeRespectsPreviousHeapSize() throws Exception {
+        long previousHeapSizeValue = 153741824L;
+        long customHeapSize = 1073741824L;
+
+        try (
+            ElasticsearchContainer container = new ElasticsearchContainer(ELASTICSEARCH_IMAGE)
+                .withEnv("ES_JAVA_OPTS", String.format("-Xms%d -Xmx%d", previousHeapSizeValue, customHeapSize))
+                .withMaxHeapSizeInBytes(customHeapSize)
+        ) {
+            container.start();
+
+            Response response = getClient(container).performRequest(new Request("GET", "/_nodes/_all/jvm"));
+            String responseBody = EntityUtils.toString(response.getEntity());
+            assertThat(response.getStatusLine().getStatusCode()).isEqualTo(200);
+            assertThat(responseBody).contains("\"heap_init_in_bytes\":" + previousHeapSizeValue);
+            assertThat(responseBody).contains("\"heap_max_in_bytes\":" + previousHeapSizeValue);
+        }
+    }
+
     private void tagImage(String sourceImage, String targetImage, String targetTag) throws InterruptedException {
         DockerClient dockerClient = DockerClientFactory.instance().client();
         dockerClient
