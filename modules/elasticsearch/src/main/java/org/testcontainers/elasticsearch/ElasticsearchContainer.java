@@ -17,6 +17,9 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -75,8 +78,6 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
 
     private String certPath = "/usr/share/elasticsearch/config/certs/http_ca.crt";
 
-    private Optional<Long> maxHeapSizeInBytes = Optional.empty();
-
     /**
      * @deprecated use {@link ElasticsearchContainer(DockerImageName)} instead
      */
@@ -122,25 +123,7 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
 
     @Override
     protected void configure() {
-        if (maxHeapSizeInBytes.isPresent()) {
-            String options = String.format("-Xms%d -Xmx%d", maxHeapSizeInBytes.get(), maxHeapSizeInBytes.get());
-            withEnv("ES_JAVA_OPTS", previousEsJavaOpts -> {
-                if (previousEsJavaOpts.isEmpty()) {
-                    return options;
-                } else {
-                    return previousEsJavaOpts.get();
-                }
-            });
-        } else {
-            String options = String.format("-Xms%d -Xmx%d", DEFAULT_MAX_HEAP_SIZE_IN_BYTES, DEFAULT_MAX_HEAP_SIZE_IN_BYTES);
-            withEnv("ES_JAVA_OPTS", previousEsJavaOpts -> {
-                if (previousEsJavaOpts.isEmpty()) {
-                    return options;
-                } else {
-                    return previousEsJavaOpts.get();
-                }
-            });
-        }
+        configureDefaultHeapSize();
     }
 
     @Override
@@ -231,15 +214,24 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
         return new InetSocketAddress(getHost(), getMappedPort(ELASTICSEARCH_DEFAULT_TCP_PORT));
     }
 
-    /**
-     * Configure max heap size by setting the -Xms and -Xmx JVM options in the ES_JAVA_OPTS environment variable.
-     * If the -Xms and -Xmx options are already present, they will be replaced with maxHeapSizeInBytes.
-     *
-     * @param maxHeapSizeInBytes Maximum and start heap size in bytes
-     * @return this
-     */
-    public ElasticsearchContainer withMaxHeapSizeInBytes(long maxHeapSizeInBytes) {
-        this.maxHeapSizeInBytes = Optional.of(Long.valueOf(maxHeapSizeInBytes));
-        return this;
+    private void configureDefaultHeapSize() {
+        String options = String.format("-Xms%d -Xmx%d", DEFAULT_MAX_HEAP_SIZE_IN_BYTES, DEFAULT_MAX_HEAP_SIZE_IN_BYTES);
+        withEnv("ES_JAVA_OPTS", previousEsJavaOpts -> {
+            if (previousEsJavaOpts.isEmpty()) {
+                return options;
+            } else {
+                List<String> previousOptions = Arrays.asList(previousEsJavaOpts.get().split("\\s+"));
+                boolean initialHeapSizeSet = previousOptions
+                    .stream()
+                    .anyMatch(option -> option.startsWith("-Xms"));
+                boolean maxHeapSizeSet = previousOptions
+                    .stream()
+                    .anyMatch(option -> option.startsWith("-Xmx"));
+                if (initialHeapSizeSet && maxHeapSizeSet) {
+                    return previousEsJavaOpts.get();
+                }
+                return options + " " + previousEsJavaOpts.get();
+            }
+        });
     }
 }

@@ -396,7 +396,7 @@ public class ElasticsearchContainerTest {
 
         try (
             ElasticsearchContainer container = new ElasticsearchContainer(ELASTICSEARCH_IMAGE)
-                .withMaxHeapSizeInBytes(customHeapSize)
+                .withEnv("ES_JAVA_OPTS", String.format("-Xms%d  -Xmx%d", customHeapSize, customHeapSize))
         ) {
             container.start();
 
@@ -409,42 +409,17 @@ public class ElasticsearchContainerTest {
     }
 
     @Test
-    public void testElasticsearchCustomMaxHeapSizeRespectsPreviousHeapSize() throws Exception {
-        long previousHeapSizeValue = 155189248L;
-        long customHeapSize = 1073741824L;
+    public void testElasticsearch8DefaultMaxHeapSize() throws Exception {
+        long defaultHeapSize = 2147483648L;
 
-        try (
-            ElasticsearchContainer container = new ElasticsearchContainer(ELASTICSEARCH_IMAGE)
-                .withEnv("ES_JAVA_OPTS", String.format("-Xms%d -Xmx%d", previousHeapSizeValue, previousHeapSizeValue))
-                .withMaxHeapSizeInBytes(customHeapSize)
-        ) {
+        try (ElasticsearchContainer container = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.1.2")) {
             container.start();
 
             Response response = getClient(container).performRequest(new Request("GET", "/_nodes/_all/jvm"));
             String responseBody = EntityUtils.toString(response.getEntity());
             assertThat(response.getStatusLine().getStatusCode()).isEqualTo(200);
-            assertThat(responseBody).contains("\"heap_init_in_bytes\":" + previousHeapSizeValue);
-            assertThat(responseBody).contains("\"heap_max_in_bytes\":" + previousHeapSizeValue);
-        }
-    }
-
-    @Test
-    public void testElasticsearchCustomMaxHeapSizeHandlesEsJavaOptOverride() throws Exception {
-        long customHeapSize = 1073741824L;
-        long subsequentHeapSize = 155189248L;
-
-        try (
-            ElasticsearchContainer container = new ElasticsearchContainer(ELASTICSEARCH_IMAGE)
-                .withMaxHeapSizeInBytes(customHeapSize)
-                .withEnv("ES_JAVA_OPTS", String.format("-Xms%d -Xmx%d", subsequentHeapSize, subsequentHeapSize))
-        ) {
-            container.start();
-
-            Response response = getClient(container).performRequest(new Request("GET", "/_nodes/_all/jvm"));
-            String responseBody = EntityUtils.toString(response.getEntity());
-            assertThat(response.getStatusLine().getStatusCode()).isEqualTo(200);
-            assertThat(responseBody).contains("\"heap_init_in_bytes\":" + customHeapSize);
-            assertThat(responseBody).contains("\"heap_max_in_bytes\":" + customHeapSize);
+            assertThat(responseBody).contains("\"heap_init_in_bytes\":" + defaultHeapSize);
+            assertThat(responseBody).contains("\"heap_max_in_bytes\":" + defaultHeapSize);
         }
     }
 
