@@ -24,6 +24,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.RemoteDockerImage;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
+import org.testcontainers.containers.BindMode;
 
 import java.io.IOException;
 
@@ -391,7 +392,7 @@ public class ElasticsearchContainerTest {
     }
 
     @Test
-    public void testElasticsearchCustomMaxHeapSize() throws Exception {
+    public void testElasticsearchCustomMaxHeapSizeInEnvironmentVariable() throws Exception {
         long customHeapSize = 1574961152;
 
         try (
@@ -409,12 +410,12 @@ public class ElasticsearchContainerTest {
     }
 
     @Test
-    public void testElasticsearchCustomMaxHeapSizeUsingJvmOptionsFile() throws Exception {
+    public void testElasticsearchCustomMaxHeapSizeInJvmOptionsFile() throws Exception {
         long customHeapSize = 1574961152;
 
         try (
             ElasticsearchContainer container = new ElasticsearchContainer(ELASTICSEARCH_IMAGE)
-	    	.withCommand(String.format("sh -c printf '-Xms%d\\n-Xmx%d' > /usr/share/elasticsearch/config/jvm.options.d/a-user-defined-jvm.options", customHeapSize, customHeapSize));
+	    	.withClasspathResourceMapping("test-custom-memory-jvm.options", "/usr/share/elasticsearch/config/jvm.options.d/a-user-defined-jvm.options", BindMode.READ_ONLY);
         ) {
             container.start();
 
