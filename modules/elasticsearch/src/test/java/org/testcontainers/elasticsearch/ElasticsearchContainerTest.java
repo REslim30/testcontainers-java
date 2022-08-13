@@ -410,7 +410,7 @@ public class ElasticsearchContainerTest {
 
     @Test
     public void testElasticsearchCustomMaxHeapSizeRespectsPreviousHeapSize() throws Exception {
-        long previousHeapSizeValue = 153741824L;
+        long previousHeapSizeValue = 155189248L;
         long customHeapSize = 1073741824L;
 
         try (
