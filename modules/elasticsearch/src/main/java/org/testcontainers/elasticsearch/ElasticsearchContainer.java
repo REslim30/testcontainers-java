@@ -103,7 +103,9 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
         logger().info("Starting an elasticsearch container using [{}]", dockerImageName);
         withNetworkAliases("elasticsearch-" + Base58.randomString(6));
         withEnv("discovery.type", "single-node");
-	withClasspathResourceMapping("elasticsearch-default-memory-vm.options", "/usr/share/elasticsearch/config/jvm.options.d/aaaaaaaaa.options", BindMode.READ_ONLY);
+	// Sets default memory of elasticsearch instance to 2GB
+	// Spaces are deliberate to allow user to define additional jvm options as elasticsearch resolves option files lexicographically
+	withClasspathResourceMapping("elasticsearch-default-memory-vm.options", "/usr/share/elasticsearch/config/jvm.options.d/              elasticsearch-default-memory-vm.options", BindMode.READ_ONLY);
         addExposedPorts(ELASTICSEARCH_DEFAULT_PORT, ELASTICSEARCH_DEFAULT_TCP_PORT);
         this.isAtLeastMajorVersion8 =
             new ComparableVersion(dockerImageName.getVersionPart()).isGreaterThanOrEqualTo("8.0.0");
