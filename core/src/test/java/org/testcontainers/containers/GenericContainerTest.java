@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.assertj.core.api.Assumptions;
 import org.junit.Test;
 import org.rnorth.ducttape.unreliables.Unreliables;
@@ -177,13 +183,30 @@ public class GenericContainerTest {
     public void testAidan() {
         Network network = Network.newNetwork();
         try (
-            GenericContainer<?> container = new GenericContainer<>(TestImages.TINY_IMAGE)
+            GenericContainer<?> container = new GenericContainer<>("nginx:1.23.1")
                 .withCreateContainerCmdModifier(cmd -> {
-                    cmd.withHostConfig(new HostConfig());
-                })
-                .withNetwork(network);
+                    HostConfig hostConfig = new HostConfig()
+                        .withPortBindings(new PortBinding(Ports.Binding.bindPort(80), new ExposedPort(80)));
+                    cmd.withHostConfig(hostConfig);
+                });
+                // .withNetwork(network);
         ) {
             container.start();
+
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpGet httpGet = new HttpGet("http://localhost:80/");
+
+            try {
+                HttpResponse res = httpClient.execute(httpGet);
+                assertThat(res.getStatusLine().getStatusCode())
+                    .isEqualTo(200);
+            } catch (ClientProtocolException e) {
+                // TODO Auto-generated catch block
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                throw new RuntimeException(e);
+            }
         }
     }
 

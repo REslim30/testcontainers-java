@@ -4,9 +4,16 @@ import lombok.Cleanup;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.testcontainers.containers.Network;
 import org.testcontainers.containers.NginxContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.DockerImageName;
+
+import com.github.dockerjava.zerodep.shaded.org.apache.hc.client5.http.classic.HttpClient;
+import com.github.dockerjava.zerodep.shaded.org.apache.hc.client5.http.classic.methods.HttpGet;
+import com.github.dockerjava.zerodep.shaded.org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.HttpResponse;
+import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.net.Host;
 
 import java.io.*;
 import java.net.URL;
@@ -24,7 +31,6 @@ public class SimpleNginxTest {
     private static String tmpDirectory = System.getProperty("user.home") + "/.tmp-test-container";
 
     // creatingContainer {
-    @Rule
     public NginxContainer<?> nginx = new NginxContainer<>(NGINX_IMAGE)
         .withCustomContent(tmpDirectory)
         .waitingFor(new HttpWaitStrategy());
@@ -59,6 +65,33 @@ public class SimpleNginxTest {
             .contains("Hello World!");
         // }
     }
+
+    // @Test
+    // public void testAidan() {
+    //     Network network = Network.newNetwork();
+    //     try (
+    //         NginxContainer<?> container = new NginxContainer<>(NGINX_IMAGE)
+    //             .withCreateContainerCmdModifier(cmd -> {
+    //                 HostConfig hostConfig = new HostConfig()
+    //                     .withPortBindings(new PortBinding(Ports.Binding.bindPort(80), new ExposedPort(8081)));
+    //                 cmd.withHostConfig(hostConfig);
+    //             })
+    //             .withNetwork(network);
+    //     ) {
+    //         container.start();
+
+    //         HttpClient httpClient = HttpClientBuilder.create().build();
+    //         HttpGet httpGet = new HttpGet("http://localhost:8081/");
+
+    //         try {
+    //             HttpResponse res = httpClient.execute(httpGet);
+    //             assertThat(res.getCode())
+    //                 .isEqualTo(200);
+    //         } catch (IOException e) {
+    //             e.printStackTrace();
+    //         }
+    //     }
+    // }
 
     private static String responseFromNginx(URL baseUrl) throws IOException {
         URLConnection urlConnection = baseUrl.openConnection();
