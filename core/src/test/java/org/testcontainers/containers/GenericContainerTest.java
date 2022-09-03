@@ -184,13 +184,13 @@ public class GenericContainerTest {
         try (
             GenericContainer<?> container = new GenericContainer<>("nginx:1.23.1")
                 .withCreateContainerCmdModifier(cmd -> {
-                    HostConfig hostConfig = new HostConfig()
+                    cmd.getHostConfig()
                         .withPortBindings(new PortBinding(Ports.Binding.bindPort(80), new ExposedPort(80)));
-                    cmd.withHostConfig(hostConfig);
                 })
                 .withNetwork(Network.newNetwork());
         ) {
             container.start();
+
 
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpGet httpGet = new HttpGet("http://localhost:80/");
@@ -206,6 +206,8 @@ public class GenericContainerTest {
                 // TODO Auto-generated catch block
                 throw new RuntimeException(e);
             }
+        } catch (Exception e) {
+            throw e;
         }
     }
 
