@@ -181,15 +181,14 @@ public class GenericContainerTest {
 
     @Test
     public void testAidan() {
-        Network network = Network.newNetwork();
         try (
             GenericContainer<?> container = new GenericContainer<>("nginx:1.23.1")
                 .withCreateContainerCmdModifier(cmd -> {
                     HostConfig hostConfig = new HostConfig()
                         .withPortBindings(new PortBinding(Ports.Binding.bindPort(80), new ExposedPort(80)));
                     cmd.withHostConfig(hostConfig);
-                });
-                // .withNetwork(network);
+                })
+                .withNetwork(Network.newNetwork());
         ) {
             container.start();
 
