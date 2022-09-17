@@ -169,6 +169,14 @@ public class GenericContainerTest {
         }
     }
 
+    @Test
+    public void shouldThrowIllegalArgumentExceptionIfGetMappedPortIsCalledOnHostNetworkMode() {
+        try (GenericContainer<?> container = new GenericContainer<>(TestImages.TINY_IMAGE).withNetworkMode("host")) {
+            container.start();
+            assertThatThrownBy(() -> container.getMappedPort(8080)).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
     static class NoopStartupCheckStrategy extends StartupCheckStrategy {
 
         @Override
