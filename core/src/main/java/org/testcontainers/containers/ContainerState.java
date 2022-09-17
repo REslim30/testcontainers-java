@@ -176,6 +176,8 @@ public interface ContainerState {
     List<Integer> getExposedPorts();
 
     /**
+     * Returns the network mode configured for this container.
+     *
      * @return the network mode of the container
      */
     @Nullable
