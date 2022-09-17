@@ -34,7 +34,7 @@ public class HostNetworkModeTest {
 //    }
 
     @Test
-    public void getMappedPortShouldThrowIllegalArgumentException() {
+    public void getMappedPortShouldReturnOriginalPort() {
         assumeThat(SystemUtils.IS_OS_LINUX).isTrue();
         try (
             GenericContainer<?> container = new GenericContainer<>(TestImages.REDIS_IMAGE)
@@ -42,19 +42,23 @@ public class HostNetworkModeTest {
                 .withExposedPorts(6379)
         ) {
             container.start();
-            assertThatThrownBy(() -> container.getMappedPort(6379)).isInstanceOf(IllegalArgumentException.class);
+            assertThat(container.getMappedPort(6379)).isEqualTo(6379);
         }
     }
 
     @Test
     public void getLivenessCheckPortsShouldReturnExposedPortsWhenHostNetworkMode() {
         assumeThat(SystemUtils.IS_OS_LINUX).isTrue();
-        GenericContainer<?> container = new GenericContainer<>(TestImages.REDIS_IMAGE)
-            .withNetworkMode("host")
-            .withExposedPorts(6379);
-        assertThat(container.getLivenessCheckPortNumbers()).containsExactly(6379);
-        assertThat(container.getLivenessCheckPort()).isEqualTo(6379);
-        assertThat(container.getLivenessCheckPorts()).containsExactly(6379);
+        try (
+            GenericContainer<?> container = new GenericContainer<>(TestImages.REDIS_IMAGE)
+                .withNetworkMode("host")
+                .withExposedPorts(6379);
+        ) {
+            container.start();
+            assertThat(container.getLivenessCheckPortNumbers()).containsExactly(6379);
+            assertThat(container.getLivenessCheckPort()).isEqualTo(6379);
+            assertThat(container.getLivenessCheckPorts()).containsExactly(6379);
+        }
     }
 
     @Test
