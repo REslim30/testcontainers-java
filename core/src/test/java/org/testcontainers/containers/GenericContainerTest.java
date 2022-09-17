@@ -171,7 +171,11 @@ public class GenericContainerTest {
 
     @Test
     public void shouldThrowIllegalArgumentExceptionIfGetMappedPortIsCalledOnHostNetworkMode() {
-        try (GenericContainer<?> container = new GenericContainer<>(TestImages.TINY_IMAGE).withNetworkMode("host")) {
+        try (
+            GenericContainer<?> container = new GenericContainer<>(TestImages.REDIS_IMAGE)
+                .withNetworkMode("host")
+                .withExposedPorts(6379)
+        ) {
             container.start();
             assertThatThrownBy(() -> container.getMappedPort(8080)).isInstanceOf(IllegalArgumentException.class);
         }

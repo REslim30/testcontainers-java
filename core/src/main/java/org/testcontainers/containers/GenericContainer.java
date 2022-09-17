@@ -132,7 +132,7 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
     @NonNull
     private List<String> extraHosts = new ArrayList<>();
 
-    @NonNull
+    @Nullable
     private String networkMode;
 
     @Nullable
@@ -446,7 +446,7 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
             // For all registered output consumers, start following as close to container startup as possible
             this.logConsumers.forEach(this::followOutput);
 
-            if (!networkMode.equals("host")) {
+            if (networkMode == null || !networkMode.equals("host")) {
                 // Wait until inspect container returns the mapped ports
                 containerInfo =
                     await()
@@ -732,7 +732,11 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
         // legacy implementation for backwards compatibility
         Iterator<Integer> exposedPortsIterator = exposedPorts.iterator();
         if (exposedPortsIterator.hasNext()) {
-            return getMappedPort(exposedPortsIterator.next());
+            if (networkMode != null && networkMode.equals("host")) {
+                return exposedPortsIterator.next();
+            } else {
+                return getMappedPort(exposedPortsIterator.next());
+            }
         } else if (portBindings.size() > 0) {
             return Integer.valueOf(PortBinding.parse(portBindings.get(0)).getBinding().getHostPortSpec());
         } else {
