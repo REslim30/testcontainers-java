@@ -208,7 +208,13 @@ public class HttpWaitStrategy extends AbstractWaitStrategy {
         final String containerName = waitStrategyTarget.getContainerInfo().getName();
 
         final Integer livenessCheckPort = livenessPort
-            .map(waitStrategyTarget::getMappedPort)
+            .map(port -> {
+                if (waitStrategyTarget.getNetworkMode() != null && waitStrategyTarget.getNetworkMode().equals("host")) {
+                    return port;
+                } else {
+                    return waitStrategyTarget.getMappedPort(port);
+                }
+            })
             .orElseGet(() -> {
                 final Set<Integer> livenessCheckPorts = getLivenessCheckPorts();
                 if (livenessCheckPorts == null || livenessCheckPorts.isEmpty()) {
@@ -229,7 +235,13 @@ public class HttpWaitStrategy extends AbstractWaitStrategy {
             int originalPort = waitStrategyTarget
                 .getExposedPorts()
                 .stream()
-                .filter(exposedPort -> rawUri.getPort() == waitStrategyTarget.getMappedPort(exposedPort))
+                .filter(exposedPort -> {
+                    if (waitStrategyTarget.getNetworkMode() != null && waitStrategyTarget.getNetworkMode().equals("host")) {
+                        return exposedPort == rawUri.getPort();
+                    } else {
+                        return rawUri.getPort() == waitStrategyTarget.getMappedPort(exposedPort);
+                    }
+                })
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Target port " + rawUri.getPort() + " is not exposed"));
             log.info(
