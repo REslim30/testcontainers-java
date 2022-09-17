@@ -13,6 +13,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.DockerClientFactory;
@@ -173,6 +174,12 @@ public interface ContainerState {
      * @return the exposed ports
      */
     List<Integer> getExposedPorts();
+
+    /**
+     * @return the network mode of the container
+     */
+    @Nullable
+    String getNetworkMode();
 
     /**
      * @return the port bindings

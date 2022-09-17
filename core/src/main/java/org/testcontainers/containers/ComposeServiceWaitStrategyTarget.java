@@ -74,4 +74,11 @@ class ComposeServiceWaitStrategyTarget implements WaitStrategyTarget {
     public String getContainerId() {
         return this.container.getId();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getNetworkMode() {
+        return this.proxyContainer.getNetworkMode();
+    }
 }
