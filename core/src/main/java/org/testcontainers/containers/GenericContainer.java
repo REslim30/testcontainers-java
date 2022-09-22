@@ -960,6 +960,10 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
     @Override
     public void setCommand(@NonNull String command) {
         this.commandParts = command.split(" ");
+//        if (command.isEmpty()) {
+//            this.commandParts = new String[0];
+//            return;
+//        }
     }
 
     /**

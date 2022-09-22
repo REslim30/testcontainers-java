@@ -5,24 +5,27 @@ import org.testcontainers.TestImages;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SetCommandSplittingTest {
+    GenericContainer container = new GenericContainer(TestImages.TINY_IMAGE);
+    @Test
+    public void splitsEmptyCommandline() {
+        container.setCommand("echo hello world");
+        assertThat(container.getCommandParts()).containsExactly("echo", "hello", "world");
+    }
     @Test
     public void splitsWithSpaces() {
-        GenericContainer genericContainer = new GenericContainer(TestImages.ALPINE_IMAGE);
-        genericContainer.setCommand("echo hello world");
-        assertThat(genericContainer.getCommandParts()).containsExactly("echo", "hello", "world");
+        container.setCommand("echo hello world");
+        assertThat(container.getCommandParts()).containsExactly("echo", "hello", "world");
     }
 
     @Test
     public void splitsWithDoubleQuotes() {
-        GenericContainer genericContainer = new GenericContainer(TestImages.ALPINE_IMAGE);
-        genericContainer.setCommand("echo \"hello world\"");
-        assertThat(genericContainer.getCommandParts()).containsExactly("echo", "hello world");
+        container.setCommand("echo \"hello world\"");
+        assertThat(container.getCommandParts()).containsExactly("echo", "hello world");
     }
 
     @Test
     public void splitsWithSingleQuotes() {
-        GenericContainer genericContainer = new GenericContainer(TestImages.ALPINE_IMAGE);
-        genericContainer.setCommand("echo 'hello world'");
-        assertThat(genericContainer.getCommandParts()).containsExactly("echo", "hello world");
+        container.setCommand("echo 'hello world'");
+        assertThat(container.getCommandParts()).containsExactly("echo", "hello world");
     }
 }
