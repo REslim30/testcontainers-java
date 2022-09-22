@@ -41,4 +41,10 @@ public class SetCommandSplittingTest {
         assertThatThrownBy(() -> container.setCommand("echo \'hello world"))
             .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    public void shouldHandleTrailingToken() {
+        container.setCommand("echo 'hello'world");
+        assertThat(container.getCommandParts()).containsExactly("echo", "hello", "world");
+    }
 }
