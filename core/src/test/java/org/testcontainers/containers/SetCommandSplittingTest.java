@@ -20,8 +20,8 @@ public class SetCommandSplittingTest {
 
     @Test
     public void splitsWithDoubleQuotes() {
-        container.setCommand("echo \"hello world\"");
-        assertThat(container.getCommandParts()).containsExactly("echo", "hello world");
+        container.setCommand("echo \"hello 'world'\"");
+        assertThat(container.getCommandParts()).containsExactly("echo", "hello 'world'");
     }
 
     @Test
@@ -32,7 +32,7 @@ public class SetCommandSplittingTest {
 
     @Test
     public void splitsWithSingleQuotes() {
-        container.setCommand("echo 'hello world'");
-        assertThat(container.getCommandParts()).containsExactly("echo", "hello world");
+        container.setCommand("echo 'hello \"world\"'");
+        assertThat(container.getCommandParts()).containsExactly("echo", "hello \"world\"");
     }
 }
