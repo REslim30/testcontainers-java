@@ -968,12 +968,25 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
         // A simple finite state machine
         final int NORMAL = 0;
         final int IN_DOUBLE_QUOTE = 1;
+        int currentState = NORMAL;
         StringTokenizer tokenizer = new StringTokenizer(command, "\" ", true);
+        ArrayList<String> commandPartsArray = new ArrayList<>();
         while (tokenizer.hasMoreTokens()) {
             String token = tokenizer.nextToken();
             System.out.println(token);
-
+            switch (currentState) {
+                case NORMAL:
+                    if (token.equals(" ")) {
+                        continue;
+                    } else if (token.equals("\"")) {
+                        currentState = IN_DOUBLE_QUOTE;
+                        continue;
+                    } else {
+                        commandPartsArray.add(token);
+                    }
+            }
         }
+        this.commandParts = commandPartsArray.toArray(new String[commandPartsArray.size()]);
     }
 
     /**
