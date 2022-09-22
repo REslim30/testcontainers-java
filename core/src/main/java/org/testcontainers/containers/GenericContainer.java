@@ -89,6 +89,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -959,11 +960,20 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
      */
     @Override
     public void setCommand(@NonNull String command) {
-        this.commandParts = command.split(" ");
-//        if (command.isEmpty()) {
-//            this.commandParts = new String[0];
-//            return;
-//        }
+        if (command.isEmpty()) {
+            this.commandParts = new String[0];
+            return;
+        }
+
+        // A simple finite state machine
+        final int NORMAL = 0;
+        final int IN_DOUBLE_QUOTE = 1;
+        StringTokenizer tokenizer = new StringTokenizer(command, "\" ", true);
+        while (tokenizer.hasMoreTokens()) {
+            String token = tokenizer.nextToken();
+            System.out.println(token);
+
+        }
     }
 
     /**
