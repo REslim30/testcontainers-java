@@ -996,6 +996,11 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
                     break;
             }
         }
+
+        if (currentState == IN_DOUBLE_QUOTE) {
+            throw new IllegalArgumentException(command + " contains unmatched double quote (\")");
+        }
+
         this.commandParts = commandPartsArray.toArray(new String[commandPartsArray.size()]);
     }
 
