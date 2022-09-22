@@ -35,4 +35,10 @@ public class SetCommandSplittingTest {
         container.setCommand("echo 'hello \"world\"'");
         assertThat(container.getCommandParts()).containsExactly("echo", "hello \"world\"");
     }
+
+    @Test
+    public void throwsIllegalArgumentExceptionIfSingleQuoteIsUnmatched() {
+        assertThatThrownBy(() -> container.setCommand("echo \'hello world"))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
 }
