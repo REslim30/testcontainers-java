@@ -1010,7 +1010,11 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
         }
 
         if (currentState == IN_DOUBLE_QUOTE) {
-            throw new IllegalArgumentException(command + " contains unmatched double quote (\")");
+            throw new IllegalArgumentException("The command [" + command + "] contains unmatched double quote (\")");
+        }
+
+        if (currentState == IN_SINGLE_QUOTE) {
+            throw new IllegalArgumentException("The command [" + command + "] contains an unmatched single quote");
         }
 
         this.commandParts = commandPartsArray.toArray(new String[commandPartsArray.size()]);
