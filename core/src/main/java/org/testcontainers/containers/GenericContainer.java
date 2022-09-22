@@ -970,20 +970,30 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
         final int IN_DOUBLE_QUOTE = 1;
         int currentState = NORMAL;
         StringTokenizer tokenizer = new StringTokenizer(command, "\" ", true);
+        StringBuilder currentCommandPart = new StringBuilder();
         ArrayList<String> commandPartsArray = new ArrayList<>();
         while (tokenizer.hasMoreTokens()) {
             String token = tokenizer.nextToken();
             System.out.println(token);
             switch (currentState) {
+                case IN_DOUBLE_QUOTE:
+                    if (token.equals("\"")) {
+                        currentState = NORMAL;
+                        commandPartsArray.add(currentCommandPart.toString());
+                        currentCommandPart = new StringBuilder();
+                    } else {
+                        currentCommandPart.append(token);
+                    }
+                    break;
                 case NORMAL:
                     if (token.equals(" ")) {
-                        continue;
+                        // do nothing
                     } else if (token.equals("\"")) {
                         currentState = IN_DOUBLE_QUOTE;
-                        continue;
                     } else {
                         commandPartsArray.add(token);
                     }
+                    break;
             }
         }
         this.commandParts = commandPartsArray.toArray(new String[commandPartsArray.size()]);
