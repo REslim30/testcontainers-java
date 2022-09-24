@@ -980,8 +980,6 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
                 case IN_DOUBLE_QUOTE:
                     if (token.equals("\"")) {
                         currentState = NORMAL;
-                        commandPartsArray.add(currentCommandPart.toString());
-                        currentCommandPart = new StringBuilder();
                     } else {
                         currentCommandPart.append(token);
                     }
@@ -989,8 +987,6 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
                 case IN_SINGLE_QUOTE:
                     if (token.equals("'")) {
                         currentState = NORMAL;
-                        commandPartsArray.add(currentCommandPart.toString());
-                        currentCommandPart = new StringBuilder();
                     } else {
                         currentCommandPart.append(token);
                     }
@@ -998,12 +994,16 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
                 case NORMAL:
                     if (token.equals(" ")) {
                         // do nothing
+                        if (currentCommandPart.length() > 0) {
+                            commandPartsArray.add(currentCommandPart.toString());
+                            currentCommandPart = new StringBuilder();
+                        }
                     } else if (token.equals("\"")) {
                         currentState = IN_DOUBLE_QUOTE;
                     } else if (token.equals("'")) {
                         currentState = IN_SINGLE_QUOTE;
                     } else {
-                        commandPartsArray.add(token);
+                        currentCommandPart.append(token);
                     }
                     break;
             }
@@ -1015,6 +1015,11 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
 
         if (currentState == IN_SINGLE_QUOTE) {
             throw new IllegalArgumentException("The command [" + command + "] contains an unmatched single quote");
+        }
+
+        if (currentCommandPart.length() > 0) {
+            commandPartsArray.add(currentCommandPart.toString());
+            currentCommandPart = new StringBuilder();
         }
 
         this.commandParts = commandPartsArray.toArray(new String[commandPartsArray.size()]);

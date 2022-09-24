@@ -45,6 +45,12 @@ public class SetCommandSplittingTest {
     @Test
     public void shouldHandleTrailingToken() {
         container.setCommand("echo 'hello'world");
-        assertThat(container.getCommandParts()).containsExactly("echo", "hello", "world");
+        assertThat(container.getCommandParts()).containsExactly("echo", "helloworld");
+    }
+
+    @Test
+    public void shouldHandleConsecutiveQuotedStrings() {
+        container.setCommand("echo 'foo'\"bar\"");
+        assertThat(container.getCommandParts()).containsExactly("echo", "foobar");
     }
 }
