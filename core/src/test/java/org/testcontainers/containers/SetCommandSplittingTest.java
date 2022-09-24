@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SetCommandSplittingTest {
-    GenericContainer container = new GenericContainer(TestImages.TINY_IMAGE);
+    private final GenericContainer container = new GenericContainer<>(TestImages.TINY_IMAGE);
     @Test
     public void splitsEmptyCommandline() {
         container.setCommand("");
@@ -15,6 +15,12 @@ public class SetCommandSplittingTest {
     @Test
     public void splitsWithSpaces() {
         container.setCommand("echo hello world");
+        assertThat(container.getCommandParts()).containsExactly("echo", "hello", "world");
+    }
+
+    @Test
+    public void handlesMultipleSpaces() {
+        container.setCommand("echo hello   world");
         assertThat(container.getCommandParts()).containsExactly("echo", "hello", "world");
     }
 
