@@ -993,7 +993,6 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
                     break;
                 case NORMAL:
                     if (token.equals(" ")) {
-                        // do nothing
                         if (currentCommandPart.length() > 0) {
                             commandPartsArray.add(currentCommandPart.toString());
                             currentCommandPart = new StringBuilder();
